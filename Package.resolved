@@ -47,12 +47,12 @@
         }
       },
       {
-        "package": "FluentSQLite",
-        "repositoryURL": "https://github.com/vapor/fluent-sqlite.git",
+        "package": "FluentMySQL",
+        "repositoryURL": "https://github.com/vapor/fluent-mysql.git",
         "state": {
           "branch": null,
-          "revision": "cda27c5f946972a5e14f4e29be81b0572fa77123",
-          "version": "3.0.0-rc.2.2"
+          "revision": "d8880a9325dfe76d1464436fda15894b831f1d77",
+          "version": "3.0.0-rc.2.5"
         }
       },
       {
@@ -65,12 +65,30 @@
         }
       },
       {
+        "package": "Jobs",
+        "repositoryURL": "https://github.com/BrettRToomey/Jobs.git",
+        "state": {
+          "branch": null,
+          "revision": "2051cc49b64692534225ea9d347051f64ac682ee",
+          "version": "1.1.2"
+        }
+      },
+      {
         "package": "Multipart",
         "repositoryURL": "https://github.com/vapor/multipart.git",
         "state": {
           "branch": null,
           "revision": "7778dcb62f3efa845e8e2808937bb347575ba7ce",
           "version": "3.0.1"
+        }
+      },
+      {
+        "package": "MySQL",
+        "repositoryURL": "https://github.com/vapor/mysql.git",
+        "state": {
+          "branch": null,
+          "revision": "cda473257572c8e02706d0c65fd145765c5a414d",
+          "version": "3.0.0-rc.2.2"
         }
       },
       {
@@ -98,15 +116,6 @@
           "branch": null,
           "revision": "1bb94271d8645b6d6983721080ad642aa35d749c",
           "version": "1.0.0"
-        }
-      },
-      {
-        "package": "SQLite",
-        "repositoryURL": "https://github.com/vapor/sqlite.git",
-        "state": {
-          "branch": null,
-          "revision": "aa16db0a4e670c94543120dd9c4f5a49abf20a97",
-          "version": "3.0.0-rc.2.3"
         }
       },
       {
