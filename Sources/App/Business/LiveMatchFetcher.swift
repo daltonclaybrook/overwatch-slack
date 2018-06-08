@@ -7,49 +7,52 @@
 
 import Foundation
 import Jobs
+import Vapor
 
 enum FetchError: Error {
     case unknown
     case decodeError
 }
 
-struct LiveMatchFetcher {
-    private static let matchURLString = URL(string: "https://api.overwatchleague.com/live-match?expand=team.content&locale=en-us")!
+class LiveMatchFetcher {
+    private let matchURLString = URL(string: "https://api.overwatchleague.com/live-match?expand=team.content&locale=en-us")!
+    private var client: Client?
 
     // MARK: Public
 
-    static func registerAndStartFetching() {
+    func registerAndStartFetching(_ application: Application) throws {
+        self.client = try application.client()
+        
         Jobs.add(interval: .seconds(30), action: fetchLiveMatch)
         fetchLiveMatch()
     }
 
     // MARK: Private
 
-    private static func fetchLiveMatch() {
-        URLSession.shared.dataTask(with: matchURLString) { data, response, error in
-            if error == nil,
-                let response = response as? HTTPURLResponse,
-                (200..<300).contains(response.statusCode),
-                let data = data {
-                self.handleResponseData(data)
-            } else {
-                self.handleError(error ?? FetchError.unknown)
-            }
-        }.resume()
-    }
-
-    private static func handleResponseData(_ data: Data) {
-        let decoder = JSONDecoder()
-        if let matchData = try? decoder.decode(OWLResponse.self, from: data) {
+    private func fetchLiveMatch() {
+        do {
+            print("Fetching matches...")
             
-        } else if let _ = try? decoder.decode(OWLStubResponse.self, from: data) {
-            print("no live match to report")
-        } else {
-            handleError(FetchError.decodeError)
+            _ = client?.get(matchURLString).then({ (response) -> Future<String> in
+                do {
+                    print("Decoding \(OWLResponse.self)...")
+                    return try response.content.decode(OWLResponse.self).flatMap { owlResponse in
+                        
+                        print("Fetched response data: \(owlResponse)")
+                        return response.eventLoop.newSucceededFuture(result: "SUCCESS")
+                    }
+                } catch {
+                    do {
+                        let matchDataStub = try response.content.decode(OWLStubResponse.self)
+                        print("Fetched stub: \(matchDataStub)")
+                        
+                        return response.eventLoop.newSucceededFuture(result: "STUB")
+                    } catch {
+                        print("Failed: \(error)")
+                        return response.eventLoop.newFailedFuture(error: error)
+                    }
+                }
+            })
         }
-    }
-
-    private static func handleError(_ error: Error) {
-
     }
 }
