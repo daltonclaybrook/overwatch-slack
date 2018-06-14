@@ -33,26 +33,21 @@ class LiveMatchFetcher {
         do {
             print("Fetching matches...")
             
-            _ = client?.get(matchURLString).then({ (response) -> Future<String> in
+            client?.get(matchURLString).whenSuccess { response in
                 do {
                     print("Decoding \(OWLResponse.self)...")
-                    return try response.content.decode(OWLResponse.self).flatMap { owlResponse in
-                        
+                    try response.content.decode(OWLResponse.self).whenSuccess { owlResponse in
                         print("Fetched response data: \(owlResponse)")
-                        return response.eventLoop.newSucceededFuture(result: "SUCCESS")
                     }
                 } catch {
                     do {
                         let matchDataStub = try response.content.decode(OWLStubResponse.self)
                         print("Fetched stub: \(matchDataStub)")
-                        
-                        return response.eventLoop.newSucceededFuture(result: "STUB")
                     } catch {
                         print("Failed: \(error)")
-                        return response.eventLoop.newFailedFuture(error: error)
                     }
                 }
-            })
+            }
         }
     }
 }
