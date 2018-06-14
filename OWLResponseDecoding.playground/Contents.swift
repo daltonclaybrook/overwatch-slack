@@ -37,31 +37,28 @@ struct OWLResponseScore: Decodable {
 struct OWLResponseGame: Decodable {
     let id: Int
     let number: Int
-    let points: [Int]
+    let points: [Int]?
 }
 
-struct OWLStubResponse: Decodable {
-    let data: OWLStubResponseData
+struct OWLStubResponse: Decodable { }
+
+func loadJSON<T: Decodable>(named fileName: String) -> T {
+    guard let path = Bundle.main.path(forResource: fileName, ofType: "json") else {
+        fatalError("Unable to load resource")
+    }
+    guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+        fatalError("Unable to load data")
+    }
+    
+    do {
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(T.self, from: data)
+        print("\(response)")
+        return response
+    } catch {
+        fatalError("\(error)")
+    }
 }
 
-struct OWLStubResponseData: Decodable {
-    let liveMatch: OWLStubResponseMatch
-    let nextMatch: OWLStubResponseMatch
-}
-
-// empty
-struct OWLStubResponseMatch: Decodable {}
-
-
-guard let data = Bundle.main.path(forResource: "live-match", ofType: "json")?.data(using: .utf8) else {
-    fatalError()
-}
-
-let decoder = JSONDecoder()
-
-do {
-    let response = try decoder.decode(OWLResponse.self, from: data)
-    print("\(response)")
-} catch {
-    fatalError("\(error)")
-}
+let liveMatch: OWLResponse = loadJSON(named: "live-match")
+let stubMatch: OWLStubResponse = loadJSON(named: "live-match-stub")

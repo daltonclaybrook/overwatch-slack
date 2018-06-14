@@ -42,7 +42,7 @@ struct OWLResponseScore: Decodable {
 struct OWLResponseGame: Decodable {
     let id: Int
     let number: Int
-    let points: [Int]
+    let points: [Int]?
 }
 
 struct OWLStubResponse: Decodable {
