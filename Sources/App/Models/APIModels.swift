@@ -19,6 +19,7 @@ struct OWLResponseData: Decodable {
 struct OWLResponseMatch: Decodable {
     let id: Int
     let competitors: [OWLResponseCompetitor]
+    let wins: [Int]
     let scores: [OWLResponseScore]
     let games: [OWLResponseGame]
 }
