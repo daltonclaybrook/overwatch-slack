@@ -1,10 +1,9 @@
-import Jobs
 import Vapor
 
-var liveMatchFetcher: LiveMatchFetcher?
+var fetcher: MatchFetcher?
 
 /// Called after your application has initialized.
 public func boot(_ app: Application) throws {
-    liveMatchFetcher = try LiveMatchFetcher(container: app)
-    liveMatchFetcher?.registerAndStartFetching()
+  fetcher = MatchFetcher(app: app)
+  try fetcher?.startFetching()
 }

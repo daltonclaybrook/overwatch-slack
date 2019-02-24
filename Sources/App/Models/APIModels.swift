@@ -8,53 +8,76 @@
 import Foundation
 
 struct OWLResponse: Decodable {
-    let data: OWLResponseData
+  let data: OWLResponseData
+
+  static func empty() -> OWLResponse {
+    return OWLResponse(data: OWLResponseData(liveMatch: nil))
+  }
 }
 
 struct OWLResponseData: Decodable {
-    let liveMatch: OWLResponseMatch
-    let nextMatch: OWLResponseMatch
+  let liveMatch: OWLResponseMatch?
 }
 
 struct OWLResponseMatch: Decodable {
-    let id: Int
-    let competitors: [OWLResponseCompetitor]
-    let wins: [Int]
-    let scores: [OWLResponseScore]
-    let games: [OWLResponseGame]
+  let id: Int
+  let conclusionStrategy: String
+  let dateCreated: Int // milliseconds
+  let startDateTS: Int // milliseconds
+  let endDateTS: Int // milliseconds
+  let showStartTime: Bool
+  let state: String
+  let wins: [Int]
+  let competitors: [OWLResponseCompetitor]
+  let scores: [OWLResponseScore]
+  let games: [OWLResponseGame]
+}
+
+extension OWLResponseMatch {
+  var startDate: Date {
+    return Date(timeIntervalSince1970: TimeInterval(startDateTS / 1000))
+  }
 }
 
 struct OWLResponseCompetitor: Decodable {
-    let id: Int
-    let name: String
-    let homeLocation: String
-    let primaryColor: String // hex string
-    let secondaryColor: String // hex string
-    let abbreviatedName: String
-    let logo: URL
-    let icon: URL
-    let secondaryPhoto: URL
+  let id: Int
+  let name: String
+  let homeLocation: String
+  let primaryColor: String // hex string
+  let secondaryColor: String // hex string
+  let abbreviatedName: String
+  let logo: URL
+  let icon: URL
+  let secondaryPhoto: URL
+  let addressCountry: String
 }
 
 struct OWLResponseScore: Decodable {
-    let value: Int
+  let value: Int
 }
 
 struct OWLResponseGame: Decodable {
-    let id: Int
-    let number: Int
-    let points: [Int]?
+  let id: Int
+  let number: Int
+  let points: [Int]?
+  let status: OWLGameStatus
+  let statusReason: String
+  let attributes: OWLGameAttributes
 }
 
-struct OWLStubResponse: Decodable {
-    let data: OWLStubResponseData
+enum OWLGameStatus: String, Decodable {
+  case pending = "PENDING"
+  case inProgress = "IN_PROGRESS"
+  case concluded = "CONCLUDED"
 }
 
-struct OWLStubResponseData: Decodable {
-    let liveMatch: OWLStubResponseMatch
-    let nextMatch: OWLStubResponseMatch
+struct OWLGameAttributes: Decodable {
+  let mapScore: OWLMapScore?
+  let map: String?
+  let mapGuid: String
 }
 
-// empty
-struct OWLStubResponseMatch: Decodable {}
-
+struct OWLMapScore: Decodable {
+  let team1: Int
+  let team2: Int
+}
