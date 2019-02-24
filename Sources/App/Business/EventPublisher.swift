@@ -25,7 +25,7 @@ final class EventPublisher {
     }
 
     let client = try container.client()
-    let body = try requestBody(for: event)
+    let body = try event.messageBlocks.messagePayloadData()
     let httpRequest = HTTPRequest(
       method: .POST,
       url: slackURL,
@@ -34,14 +34,6 @@ final class EventPublisher {
     )
     let request = Request(http: httpRequest, using: container)
     client.send(request).whenComplete {}
-  }
-
-  // MARK: - Helpers
-
-  private func requestBody(for event: MatchEvent) throws -> Data {
-    let encoder = JSONEncoder()
-    let payload = EventPayload(text: event.messageText)
-    return try encoder.encode(payload)
   }
 }
 

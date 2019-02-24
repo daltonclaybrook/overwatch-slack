@@ -71,7 +71,10 @@ extension ImageInfo {
 
 extension Sequence where Element == MessageBlock {
   func messagePayloadData() throws -> Data {
-    let payload = map { $0.payload }
-    return try JSONSerialization.data(withJSONObject: payload, options: [])
+    let payloads = map { $0.payload }
+    let data = try JSONSerialization.data(withJSONObject: payloads, options: [])
+    let dataString = String(data: data, encoding: .utf8) ?? ""
+    let blockPayload = [ "blocks": dataString ]
+    return try JSONSerialization.data(withJSONObject: blockPayload, options: [])
   }
 }
