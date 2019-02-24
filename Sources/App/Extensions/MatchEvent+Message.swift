@@ -16,7 +16,7 @@ extension MatchEvent {
     case .matchStarted(let teams):
       let text = "The match is starting between *\(teams.team1.name)* and *\(teams.team2.name)*.\n<https://overwatchleague.com|*Watch Live*>"
       return [.text(text)]
-    case .gameStarted(_):
+    case .gameStarted(let teams, let gameIndex, let map):
       return [.text("A new game is starting")]
     case .matchEnded(_):
       return [.text("The match has ended")]

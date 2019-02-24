@@ -12,7 +12,7 @@ struct MatchEventBuilder {
 
   private init() {}
 
-  static func buildMatchEventWith(currentResponse: OWLResponse, previousResponse: OWLResponse, previousResponseDate: Date) -> MatchEvent? {
+  static func buildMatchEventWith(currentResponse: OWLResponse, previousResponse: OWLResponse, maps: [OWLMap], previousResponseDate: Date) -> MatchEvent? {
     guard let current = currentResponse.data.liveMatch,
       let previous = previousResponse.data.liveMatch,
       let teams = makeTeams(with: current) else {
@@ -21,7 +21,7 @@ struct MatchEventBuilder {
 
     if let event = matchStartingOrStarted(current: current, previous: previous, previousDate: previousResponseDate, teams: teams) {
       return event
-    } else if let event = gameStarted(current: current, previous: previous, teams: teams) {
+    } else if let event = gameStarted(current: current, previous: previous, teams: teams, maps: maps) {
       return event
     } else if let event = matchEnded(current: current, previous: previous, teams: teams) {
       return event
@@ -47,18 +47,21 @@ struct MatchEventBuilder {
     }
   }
 
-  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams, maps: [OWLMap]) -> MatchEvent? {
     guard let inProgressIndex = current.games.firstIndex(where: { $0.status == .inProgress }) else {
       return nil
     }
+
+    let game = current.games[inProgressIndex]
+    let map = mapForGame(game, in: maps)
     guard previous.games.count > inProgressIndex else {
       // this game didn't exist previously
-      return .gameStarted(teams)
+      return .gameStarted(teams, gameIndex: inProgressIndex, map)
     }
 
     let previousGame = previous.games[inProgressIndex]
     if previousGame.status == .pending {
-      return .gameStarted(teams)
+      return .gameStarted(teams, gameIndex: inProgressIndex, map)
     } else {
       return nil
     }
@@ -94,5 +97,9 @@ struct MatchEventBuilder {
       team1: match.competitors[0],
       team2: match.competitors[1]
     )
+  }
+
+  private static func mapForGame(_ game: OWLResponseGame, in maps: [OWLMap]) -> OWLMap? {
+    return maps.first { $0.guid == game.attributes.mapGuid }
   }
 }

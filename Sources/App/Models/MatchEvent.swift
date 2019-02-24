@@ -31,7 +31,7 @@ enum MatchEvent {
   // only one of these events will fire at a time,
   // whichever is most significant
   case matchStarted(MatchTeams)
-  case gameStarted(MatchTeams)
+  case gameStarted(MatchTeams, gameIndex: Int, OWLMap?)
 
   // only one of these events will fire at a time,
   // whichever is most significant

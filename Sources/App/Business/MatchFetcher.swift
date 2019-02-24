@@ -120,6 +120,7 @@ final class MatchFetcher {
       let event = MatchEventBuilder.buildMatchEventWith(
         currentResponse: response,
         previousResponse: previous,
+        maps: maps,
         previousResponseDate: previousDate
       ) else { return }
 

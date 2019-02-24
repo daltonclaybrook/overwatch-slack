@@ -33,6 +33,7 @@ struct OWLResponseMatch: Decodable {
   let competitors: [OWLResponseCompetitor]
   let scores: [OWLResponseScore]
   let games: [OWLResponseGame]
+  let winner: OWLResponseCompetitor?
 }
 
 extension OWLResponseMatch {
