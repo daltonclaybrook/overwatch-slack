@@ -11,7 +11,7 @@ extension MatchEvent {
   var messageText: String {
     switch self {
     case .matchStartingSoon(let teams):
-      return "*\(teams.team1)* will face off against *\(teams.team2)* in _10 minutes_.\n<https://overwatchleague.com|*Watch Live*>"
+      return "*\(teams.team1.name)* will face off against *\(teams.team2.name)* in _10 minutes_.\n<https://overwatchleague.com|*Watch Live*>"
     case .matchStarted(let teams):
       return "The match is starting between *\(teams.team1)* and *\(teams.team2)*.\n<https://overwatchleague.com|*Watch Live*>"
     case .gameStarted(_):
@@ -21,5 +21,11 @@ extension MatchEvent {
     case .gameEnded(_):
       return "The game has ended"
     }
+  }
+}
+
+extension MatchEvent {
+  var messageBlocks: [MessageBlock] {
+    return []
   }
 }
