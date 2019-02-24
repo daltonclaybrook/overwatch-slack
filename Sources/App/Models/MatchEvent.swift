@@ -28,17 +28,13 @@ enum GameOutcome {
 enum MatchEvent {
   // ten minutes
   case matchStartingSoon(MatchTeams)
-  // only one of the "started" events will fire at a time,
-  // whichever is most significant.
+  // only one of these events will fire at a time,
+  // whichever is most significant
   case matchStarted(MatchTeams)
   case gameStarted(MatchTeams)
-  case roundStarted(MatchTeams)
 
-  // only one of these events will fire at a time (including
-  // the "scored" event), whichever is most significant
+  // only one of these events will fire at a time,
+  // whichever is most significant
   case matchEnded(MatchTeams)
   case gameEnded(MatchTeams)
-  case roundEnded(MatchTeams)
-  // includes control point capture
-  case teamScored(MatchTeams)
 }

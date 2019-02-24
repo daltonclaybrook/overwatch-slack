@@ -15,9 +15,13 @@ enum FetcherError: Error {
 
 final class MatchFetcher {
   private let app: Application
+  private let publisher: EventPublisher
+  private var previousResponse: OWLResponse?
+  private var previousResponseDate: Date?
 
   init(app: Application) {
     self.app = app
+    publisher = EventPublisher(app: app)
   }
 
   func startFetching() throws {
@@ -63,8 +67,26 @@ final class MatchFetcher {
       .catch { error in
         print("caught error: \(error)")
       }
-      .whenSuccess { response in
-        print("foo: \(response.data.liveMatch?.competitors.first?.name ?? "none")")
+      .whenSuccess { [weak self] response in
+        self?.handleResponse(response)
       }
+  }
+
+  private func handleResponse(_ response: OWLResponse) {
+    defer {
+      previousResponse = response
+      previousResponseDate = Date()
+    }
+
+    guard
+      let previous = previousResponse,
+      let previousDate = previousResponseDate,
+      let event = MatchEventBuilder.buildMatchEventWith(
+        currentResponse: response,
+        previousResponse: previous,
+        previousResponseDate: previousDate
+      ) else { return }
+
+    publisher.publish(event: event)
   }
 }

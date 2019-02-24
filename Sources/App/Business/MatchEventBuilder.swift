@@ -13,17 +13,23 @@ struct MatchEventBuilder {
   private init() {}
 
   static func buildMatchEventWith(currentResponse: OWLResponse, previousResponse: OWLResponse, previousResponseDate: Date) -> MatchEvent? {
-    guard let match = currentResponse.data.liveMatch,
+    guard let current = currentResponse.data.liveMatch,
       let previous = previousResponse.data.liveMatch,
-      let teams = makeTeams(with: match) else {
+      let teams = makeTeams(with: current) else {
       return nil
     }
 
-    if let event = matchStartingOrStarted(current: match, previous: previous, previousDate: previousResponseDate, teams: teams) {
+    if let event = matchStartingOrStarted(current: current, previous: previous, previousDate: previousResponseDate, teams: teams) {
       return event
+    } else if let event = gameStarted(current: current, previous: previous, teams: teams) {
+      return event
+    } else if let event = matchEnded(current: current, previous: previous, teams: teams) {
+      return event
+    } else if let event = gameEnded(current: current, previous: previous, teams: teams) {
+      return event
+    } else {
+      return nil
     }
-
-    return nil
   }
 
   // MARK: - Individual Events
@@ -36,6 +42,45 @@ struct MatchEventBuilder {
       return .matchStartingSoon(teams)
     } else if timeToStart <= 0 && previousTimeToStart > 0 {
       return .matchStarted(teams)
+    } else {
+      return nil
+    }
+  }
+
+  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+    guard let inProgressIndex = current.games.firstIndex(where: { $0.status == .inProgress }) else {
+      return nil
+    }
+    guard previous.games.count > inProgressIndex else {
+      // this game didn't exist previously
+      return .gameStarted(teams)
+    }
+
+    let previousGame = previous.games[inProgressIndex]
+    if previousGame.status == .pending {
+      return .gameStarted(teams)
+    } else {
+      return nil
+    }
+  }
+
+  private static func matchEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+    if current.status == .concluded && previous.status == .inProgress {
+      return .matchEnded(teams)
+    } else {
+      return nil
+    }
+  }
+
+  private static func gameEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+    guard let previousInProgressIndex = previous.games.firstIndex(where: { $0.status == .inProgress }),
+      current.games.count > previousInProgressIndex else {
+      return nil
+    }
+
+    let game = current.games[previousInProgressIndex]
+    if game.status == .concluded {
+      return .gameEnded(teams)
     } else {
       return nil
     }

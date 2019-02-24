@@ -24,9 +24,11 @@ struct OWLResponseMatch: Decodable {
   let conclusionStrategy: String
   let dateCreated: Int // milliseconds
   let startDateTS: Int // milliseconds
+  let actualStartDate: Int // milliseconds
   let endDateTS: Int // milliseconds
   let showStartTime: Bool
-  let state: String
+  let status: OWLGameMatchStatus
+  let statusReason: String
   let wins: [Int]
   let competitors: [OWLResponseCompetitor]
   let scores: [OWLResponseScore]
@@ -60,12 +62,12 @@ struct OWLResponseGame: Decodable {
   let id: Int
   let number: Int
   let points: [Int]?
-  let status: OWLGameStatus
+  let status: OWLGameMatchStatus
   let statusReason: String
   let attributes: OWLGameAttributes
 }
 
-enum OWLGameStatus: String, Decodable {
+enum OWLGameMatchStatus: String, Decodable {
   case pending = "PENDING"
   case inProgress = "IN_PROGRESS"
   case concluded = "CONCLUDED"
