@@ -22,8 +22,8 @@ struct OWLMap: Decodable {
   let id: String
   let guid: String
   let name: [String: String]
-  let icon: URL
-  let thumbnail: URL
+  let icon: String // url
+  let thumbnail: String // url
   let type: MapType
 }
 
@@ -31,5 +31,13 @@ extension OWLMap {
   var englishName: String {
     // should always be non-nil
     return name["en_US"] ?? ""
+  }
+
+  var iconURL: URL? {
+    return URL(string: icon)
+  }
+
+  var thumbnailURL: URL? {
+    return URL(string: thumbnail)
   }
 }

@@ -24,7 +24,7 @@ struct OWLResponseMatch: Decodable {
   let conclusionStrategy: String
   let dateCreated: Int // milliseconds
   let startDateTS: Int // milliseconds
-  let actualStartDate: Int // milliseconds
+  let actualStartDate: Int? // milliseconds
   let endDateTS: Int // milliseconds
   let showStartTime: Bool
   let status: OWLGameMatchStatus
