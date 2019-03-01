@@ -37,4 +37,6 @@ enum MatchEvent {
   // whichever is most significant
   case matchEnded(MatchTeams)
   case gameEnded(MatchTeams)
+
+	case pointsUpdated(MatchTeams)
 }
