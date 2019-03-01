@@ -10,20 +10,23 @@ import Foundation
 extension MessageBlock {
   var payload: [String: Any] {
     switch self {
+		case .text(let text):
+			return [
+				"type": "mrkdwn",
+				"text": text
+			]
     case .section(let info):
       return info.payload
     case .divider:
       return [ "type": "divider" ]
     case .image(let info):
       return info.payload
-    }
-  }
-
-  private var payloadType: String {
-    switch self {
-    case .section: return "section"
-    case .divider: return "divider"
-    case .image: return "image"
+		case .context(let elements):
+			let payloads = elements.map { $0.payload }
+			return [
+				"type": "context",
+				"elements": payloads
+			]
     }
   }
 }

@@ -28,7 +28,27 @@ extension MatchEvent {
 			// "Map: Kings Row"
 			// "Type: Hybrid"
 			// <map image accesory>
-      return [.text("A new game is starting")]
+
+			var blocks: [MessageBlock] = []
+			blocks.append(.textSection(
+				"Game \(gameIndex + 1) of *\(teams.team1.name)* vs *\(teams.team2.name)* is starting.\n<https://overwatchleague.com|*Watch Live*>"
+			))
+			if let map = map, let imageURL = map.thumbnailURL {
+				blocks.append(.divider)
+				let imageInfo = ImageInfo(imageURL: imageURL, altText: map.englishName, title: nil)
+				let sectionInfo = SectionInfo(
+					text: "Map: *\(map.englishName.capitalized)*\nType: *\(map.type.rawValue.capitalized)*",
+					accessory: imageInfo
+				)
+				blocks.append(.section(sectionInfo))
+			}
+			if let contextIconURL = URL(string: "https://styleguide.overwatchleague.com/6.6.2/assets/toolkit/images/logo-tracer.png") {
+				blocks.append(.context([
+					.image(ImageInfo.init(imageURL: contextIconURL, altText: "logo", title: nil)),
+					.text("OWL Slack")
+				]))
+			}
+      return blocks
     case .matchEnded(_):
 			// Example:
 			// "Houston Outlaws have won the match againse Dallas Fuel!"

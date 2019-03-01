@@ -26,13 +26,15 @@ struct ImageInfo {
 }
 
 enum MessageBlock {
+	case text(String)
   case section(SectionInfo)
   case divider
   case image(ImageInfo)
+	case context([MessageBlock])
 }
 
 extension MessageBlock {
-  static func text(_ text: String) -> MessageBlock {
-    return .section(SectionInfo(text: text))
-  }
+	static func textSection(_ text: String) -> MessageBlock {
+		return .section(SectionInfo(text: text))
+	}
 }
