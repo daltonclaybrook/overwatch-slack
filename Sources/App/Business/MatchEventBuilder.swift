@@ -68,8 +68,16 @@ struct MatchEventBuilder {
   }
 
   private static func matchEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
-    if current.status == .concluded && previous.status == .inProgress {
-      return .matchEnded(teams)
+    if current.status == .concluded &&
+			previous.status == .inProgress &&
+			current.scores.count == 2 &&
+			current.scores[0] != current.scores[1] {
+
+			let team1Score = TeamScore(team: teams.team1, score: current.scores[0].value)
+			let team2Score = TeamScore(team: teams.team2, score: current.scores[1].value)
+
+			let outcome = makeWinningOutcome(team1: team1Score, team2: team2Score)
+			return .matchEnded(outcome)
     } else {
       return nil
     }
@@ -82,8 +90,13 @@ struct MatchEventBuilder {
     }
 
     let game = current.games[previousInProgressIndex]
-    if game.status == .concluded {
-      return .gameEnded(teams)
+    if game.status == .concluded,
+			let points = game.points,
+			points.count == 2 {
+			let team1Score = TeamScore(team: teams.team1, score: points[0])
+			let team2Score = TeamScore(team: teams.team2, score: points[1])
+			let outcome = makeOutcome(team1: team1Score, team2: team2Score)
+      return .gameEnded(outcome, gameIndex: previousInProgressIndex)
     } else {
       return nil
     }
@@ -102,4 +115,20 @@ struct MatchEventBuilder {
   private static func mapForGame(_ game: OWLResponseGame, in maps: [OWLMap]) -> OWLMap? {
     return maps.first { $0.guid == game.attributes.mapGuid }
   }
+
+	private static func makeOutcome(team1: TeamScore, team2: TeamScore) -> Outcome {
+		if team1.score == team2.score {
+			return .draw(MatchTeams(team1: team1.team, team2: team2.team), score: team1.score)
+		} else {
+			return .win(makeWinningOutcome(team1: team1, team2: team2))
+		}
+	}
+
+	private static func makeWinningOutcome(team1: TeamScore, team2: TeamScore) -> WinningOutcome {
+		if team1.score > team2.score {
+			return WinningOutcome(winner: team1, loser: team2)
+		} else {
+			return WinningOutcome(winner: team2, loser: team1)
+		}
+	}
 }

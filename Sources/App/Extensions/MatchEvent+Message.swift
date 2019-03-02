@@ -42,27 +42,33 @@ extension MatchEvent {
 				)
 				blocks.append(.section(sectionInfo))
 			}
-			if let contextIconURL = URL(string: "https://styleguide.overwatchleague.com/6.6.2/assets/toolkit/images/logo-tracer.png") {
-				blocks.append(.context([
-					.image(ImageInfo.init(imageURL: contextIconURL, altText: "logo", title: nil)),
-					.text("OWL Slack")
-				]))
-			}
+			blocks.append(MatchEvent.context)
       return blocks
-    case .matchEnded(_):
+    case .matchEnded(let outcome):
 			// Example:
 			// "Houston Outlaws have won the match againse Dallas Fuel!"
 			// <divider>
 			// "Games won:"
 			// "Houston Outlaws: 3		Dallas Fuel: 1"
-      return [.text("The match has ended")]
-    case .gameEnded(_):
+			var blocks: [MessageBlock] = []
+			blocks.append(.textSection("*\(outcome.winner.team.name)* have won the match against *\(outcome.loser.team.name)*!"))
+			blocks.append(.divider)
+			let fields = [
+				"\(outcome.winner.team.name): *\(outcome.winner.score)*",
+				"\(outcome.loser.team.name): *\(outcome.loser.score)*"
+			]
+			let info = SectionInfo(text: "Games won:", fields: fields)
+			blocks.append(.section(info))
+
+			blocks.append(MatchEvent.context)
+      return blocks
+    case .gameEnded(let outcome, let gameIndex):
 			// Example:
 			// "Houston Outlaws have won game 3 against Dallas Fuel!"
 			// <divider>
 			// "Games won:"
 			// "Houston Outlaws: 2		Dallas Fuel: 1"
-      return [.text("The game has ended")]
+      return blocksForGameEnded(outcome, gameIndex: gameIndex)
 		case .pointsUpdated(let teams):
 			// Example:
 			// "The score has been updated for game 3 of Houston Outlaws vs Dallas Fuel"
@@ -71,4 +77,41 @@ extension MatchEvent {
 			return [.text("points updated")]
     }
   }
+
+	// MARK: - Private
+
+	private func blocksForGameEnded(_ outcome: Outcome, gameIndex: Int) -> [MessageBlock] {
+		var blocks: [MessageBlock] = []
+		switch outcome {
+		case .win(let outcome):
+			blocks.append(.textSection("*\(outcome.winner.team.name)* have won the game against *\(outcome.loser.team.name)*!"))
+			blocks.append(.divider)
+			let fields = [
+				"\(outcome.winner.team.name): *\(outcome.winner.score)*",
+				"\(outcome.loser.team.name): *\(outcome.loser.score)*"
+			]
+			let info = SectionInfo(text: "Score:", fields: fields)
+			blocks.append(.section(info))
+		case .draw(let teams, let score):
+			blocks.append(.textSection("It's a draw! Game \(gameIndex + 1) between *\(teams.team1.name)* and *\(teams.team2.name)* has ended with a score of \(score)-\(score)"))
+		}
+		blocks.append(MatchEvent.context)
+		return blocks
+	}
+}
+
+extension MatchEvent {
+	private static let context: MessageBlock = {
+		let contextIconURL = URL(string: "https://styleguide.overwatchleague.com/6.6.2/assets/toolkit/images/logo-tracer.png")!
+		let info = ImageInfo(
+			imageURL: contextIconURL,
+			altText: "logo",
+			title: nil
+		)
+		let blocks: [MessageBlock] = [
+			.image(info),
+			.text("OWL Slack")
+		]
+		return .context(blocks)
+	}()
 }

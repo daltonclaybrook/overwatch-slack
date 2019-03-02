@@ -42,7 +42,7 @@ extension OWLResponseMatch {
   }
 }
 
-struct OWLResponseCompetitor: Decodable {
+struct OWLResponseCompetitor: Decodable, Equatable {
   let id: Int
   let name: String
   let homeLocation: String
@@ -55,7 +55,7 @@ struct OWLResponseCompetitor: Decodable {
   let addressCountry: String
 }
 
-struct OWLResponseScore: Decodable {
+struct OWLResponseScore: Decodable, Equatable {
   let value: Int
 }
 

@@ -20,9 +20,19 @@ struct RoundStartedInfo {
   let isNewMatch: Bool
 }
 
-enum GameOutcome {
-  case win(OWLResponseCompetitor)
-  case draw
+struct TeamScore {
+	let team: OWLResponseCompetitor
+	let score: Int
+}
+
+struct WinningOutcome {
+	let winner: TeamScore
+	let loser: TeamScore
+}
+
+enum Outcome {
+  case win(WinningOutcome)
+	case draw(MatchTeams, score: Int)
 }
 
 enum MatchEvent {
@@ -35,8 +45,8 @@ enum MatchEvent {
 
   // only one of these events will fire at a time,
   // whichever is most significant
-  case matchEnded(MatchTeams)
-  case gameEnded(MatchTeams)
+	case matchEnded(WinningOutcome)
+	case gameEnded(Outcome, gameIndex: Int)
 
 	case pointsUpdated(MatchTeams)
 }
