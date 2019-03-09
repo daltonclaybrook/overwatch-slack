@@ -15,6 +15,7 @@ enum MapType: String, Decodable {
   case arena
   case deathmatch
   case lucioball
+  case captureTheFlag = "ctf"
   case none = ""
 }
 
