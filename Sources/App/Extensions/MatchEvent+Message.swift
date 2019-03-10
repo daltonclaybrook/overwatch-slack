@@ -15,12 +15,8 @@ extension MatchEvent {
 			// "Houston Outlaws will face off against Dallas Fuel in 10 minutes. Watch Live."
       let text = "*\(teams.team1.name)* will face off against *\(teams.team2.name)* in _10 minutes_.\n<https://overwatchleague.com|*Watch Live*>"
       return [.text(text)]
-    case .matchStarted(let teams):
-			// Example:
-			// "The match is starting between Houston Outlaws and Dallas Fuel."
-			// - maybe list team win/loss records?
-      let text = "The match is starting between *\(teams.team1.name)* and *\(teams.team2.name)*.\n<https://overwatchleague.com|*Watch Live*>"
-      return [.text(text)]
+    case .matchStarted(let info):
+      return MatchStartedMessageBuilder.buildMessage(with: info)
     case .mapStarted(let teams, let mapIndex, let map):
 			// Example:
 			// "Map 3 of Houston Outlaws vs Dallas Fuel is starting."

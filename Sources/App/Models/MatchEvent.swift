@@ -7,9 +7,38 @@
 
 import Foundation
 
+enum MatchEvent {
+  // ten minutes
+  case matchStartingSoon(Teams)
+  // only one of these events will fire at a time,
+  // whichever is most significant
+  case matchStarted(MatchStartInfo)
+  case mapStarted(Teams, mapIndex: Int, OWLMap)
+
+  // only one of these events will fire at a time,
+  // whichever is most significant
+  case matchEnded(MatchOutcome)
+  case mapEnded(MapOutcome, mapIndex: Int)
+
+  case pointsUpdated(Teams)
+}
+
+// MARK: - Supporting Models
+
 struct Teams {
   let team1: OWLResponseCompetitor
   let team2: OWLResponseCompetitor
+}
+
+struct TeamsStandings {
+  let team1: OWLStandingsTeam
+  let team2: OWLStandingsTeam
+}
+
+struct MatchStartInfo {
+  let teams: Teams
+  let standings: TeamsStandings
+  let startDate: Date
 }
 
 struct RoundStartedInfo {
@@ -38,22 +67,6 @@ enum MapOutcome {
 struct MatchOutcome {
   let match: WinningOutcome
   let maps: [MapOutcome]
-}
-
-enum MatchEvent {
-  // ten minutes
-  case matchStartingSoon(Teams)
-  // only one of these events will fire at a time,
-  // whichever is most significant
-  case matchStarted(Teams)
-  case mapStarted(Teams, mapIndex: Int, OWLMap)
-
-  // only one of these events will fire at a time,
-  // whichever is most significant
-	case matchEnded(MatchOutcome)
-	case mapEnded(MapOutcome, mapIndex: Int)
-
-	case pointsUpdated(Teams)
 }
 
 extension MapOutcome {

@@ -7,22 +7,32 @@
 
 import Foundation
 
+protocol SectionAccessory {
+  var payload: [String: Any] { get }
+}
+
 struct SectionInfo {
   let text: String?
   let fields: [String]
-  let accessory: ImageInfo?
+  let accessory: SectionAccessory?
 
-  init(text: String? = nil, fields: [String] = [], accessory: ImageInfo? = nil) {
+  init(text: String? = nil, fields: [String] = [], accessory: SectionAccessory? = nil) {
     self.text = text
     self.fields = fields
     self.accessory = accessory
   }
 }
 
-struct ImageInfo {
+struct ImageInfo: SectionAccessory {
   let imageURL: URL
   let altText: String
   let title: String?
+}
+
+struct Button: SectionAccessory {
+  let text: String
+  let actionId: String
+  let urlString: String?
 }
 
 enum MessageBlock {

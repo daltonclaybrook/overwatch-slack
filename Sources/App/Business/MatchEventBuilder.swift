@@ -12,14 +12,21 @@ struct MatchEventBuilder {
 
   private init() {}
 
-  static func buildMatchEventWith(currentResponse: OWLResponse, previousResponse: OWLResponse, maps: [OWLMap], previousResponseDate: Date) -> MatchEvent? {
+  static func buildMatchEventWith(
+    currentResponse: OWLResponse,
+    previousResponse: OWLResponse,
+    maps: [OWLMap],
+    standingsTeams: [OWLStandingsTeam],
+    previousResponseDate: Date
+  ) -> MatchEvent? {
     guard let current = currentResponse.data.liveMatch,
       let previous = previousResponse.data.liveMatch,
-      let teams = makeTeams(with: current) else {
+      let teams = makeTeams(with: current),
+      let standings = teamsStandings(for: teams, standings: standingsTeams) else {
       return nil
     }
 
-    if let event = matchStartingOrStarted(current: current, previous: previous, previousDate: previousResponseDate, teams: teams) {
+    if let event = matchStartingOrStarted(current: current, previous: previous, previousDate: previousResponseDate, teams: teams, standings: standings) {
       return event
     } else if let event = gameStarted(current: current, previous: previous, teams: teams, maps: maps) {
       return event
@@ -34,14 +41,21 @@ struct MatchEventBuilder {
 
   // MARK: - Individual Events
 
-  private static func matchStartingOrStarted(current: OWLResponseMatch, previous: OWLResponseMatch, previousDate: Date, teams: Teams) -> MatchEvent? {
+  private static func matchStartingOrStarted(
+    current: OWLResponseMatch,
+    previous: OWLResponseMatch,
+    previousDate: Date,
+    teams: Teams,
+    standings: TeamsStandings
+  ) -> MatchEvent? {
     let previousTimeToStart = current.startDate.timeIntervalSince(previousDate)
     let timeToStart = current.startDate.timeIntervalSinceNow
 
     if timeToStart <= tenMinutes && previousTimeToStart > tenMinutes {
       return .matchStartingSoon(teams)
     } else if timeToStart <= 0 && previousTimeToStart > 0 {
-      return .matchStarted(teams)
+      let info = MatchStartInfo(teams: teams, standings: standings, startDate: current.startDate)
+      return .matchStarted(info)
     } else {
       return nil
     }
@@ -121,6 +135,14 @@ struct MatchEventBuilder {
 
   private static func mapForGame(_ game: OWLResponseGame, in maps: [OWLMap]) -> OWLMap? {
     return maps.first { $0.guid == game.attributes.mapGuid }
+  }
+
+  private static func teamsStandings(for teams: Teams, standings: [OWLStandingsTeam]) -> TeamsStandings? {
+    guard
+      let team1 = standings.first(where: { $0.id == teams.team1.id }),
+      let team2 = standings.first(where: { $0.id == teams.team2.id })
+    else { return nil }
+    return TeamsStandings(team1: team1, team2: team2)
   }
 
   private static func makeMapOutcome(for game: OWLResponseGame, teams: Teams, maps: [OWLMap]) -> MapOutcome? {

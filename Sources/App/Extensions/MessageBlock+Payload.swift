@@ -74,6 +74,23 @@ extension ImageInfo {
   }
 }
 
+extension Button {
+  var payload: [String : Any] {
+    var payload: [String: Any] = [
+      "type": "button",
+      "action_id": actionId,
+      "text": [
+        "type": "plain_text",
+        "text": text
+      ]
+    ]
+    if let urlString = urlString {
+      payload["url"] = urlString
+    }
+    return payload
+  }
+}
+
 extension Sequence where Element == MessageBlock {
   func messagePayloadData() throws -> Data {
     let payloads = map { $0.payload }

@@ -12,6 +12,7 @@ enum EnvKey: String {
   case liveMatchURL = "LIVE_MATCH_URL"
   case mapsURL = "MAPS_URL"
   case slackWebhookURL = "SLACK_WEBHOOK_URL"
+  case standingsURL = "STANDINGS_URL"
 }
 
 extension Environment {
