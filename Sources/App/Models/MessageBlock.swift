@@ -8,11 +8,11 @@
 import Foundation
 
 struct SectionInfo {
-  let text: String
+  let text: String?
   let fields: [String]
   let accessory: ImageInfo?
 
-  init(text: String, fields: [String] = [], accessory: ImageInfo? = nil) {
+  init(text: String? = nil, fields: [String] = [], accessory: ImageInfo? = nil) {
     self.text = text
     self.fields = fields
     self.accessory = accessory

@@ -35,11 +35,13 @@ extension SectionInfo {
   var payload: [String: Any] {
     var payload: [String: Any] = [
       "type": "section",
-      "text": [
+    ]
+    if let text = text {
+      payload["text"] = [
         "type": "mrkdwn",
         "text": text
       ]
-    ]
+    }
     if !fields.isEmpty {
       payload["fields"] = fields.map {
         [

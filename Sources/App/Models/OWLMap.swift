@@ -42,3 +42,28 @@ extension OWLMap {
     return URL(string: thumbnail)
   }
 }
+
+extension MapType {
+  var humanString: String {
+    switch self {
+    case .assault:
+      return "Assault"
+    case .hybrid:
+      return "Hybrid"
+    case .escort:
+      return "Escort"
+    case .control:
+      return "Control"
+    case .arena:
+      return "Arena"
+    case .deathmatch:
+      return "Deathmatch"
+    case .lucioball:
+      return "Lucioball"
+    case .captureTheFlag:
+      return "Capture The Flag"
+    case .none:
+      return "None"
+    }
+  }
+}

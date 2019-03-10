@@ -21,9 +21,9 @@ extension MatchEvent {
 			// - maybe list team win/loss records?
       let text = "The match is starting between *\(teams.team1.name)* and *\(teams.team2.name)*.\n<https://overwatchleague.com|*Watch Live*>"
       return [.text(text)]
-    case .gameStarted(let teams, let gameIndex, let map):
+    case .mapStarted(let teams, let mapIndex, let map):
 			// Example:
-			// "Game 3 of Houston Outlaws vs Dallas Fuel is starting."
+			// "Map 3 of Houston Outlaws vs Dallas Fuel is starting."
 			// <divider>
 			// "Map: Kings Row"
 			// "Type: Hybrid"
@@ -31,9 +31,9 @@ extension MatchEvent {
 
 			var blocks: [MessageBlock] = []
 			blocks.append(.textSection(
-				"Game \(gameIndex + 1) of *\(teams.team1.name)* vs *\(teams.team2.name)* is starting.\n<https://overwatchleague.com|*Watch Live*>"
+				"Map \(mapIndex + 1) of *\(teams.team1.name)* vs *\(teams.team2.name)* is starting.\n<https://overwatchleague.com|*Watch Live*>"
 			))
-			if let map = map, let imageURL = map.thumbnailURL {
+			if let imageURL = map.thumbnailURL {
 				blocks.append(.divider)
 				let imageInfo = ImageInfo(imageURL: imageURL, altText: map.englishName, title: nil)
 				let sectionInfo = SectionInfo(
@@ -45,33 +45,17 @@ extension MatchEvent {
 			blocks.append(MatchEvent.context)
       return blocks
     case .matchEnded(let outcome):
+			return MatchEndedMessageBuilder.buildMessage(with: outcome)
+    case .mapEnded(let outcome, let mapIndex):
 			// Example:
-			// "Houston Outlaws have won the match againse Dallas Fuel!"
+			// "Houston Outlaws have won map 3 against Dallas Fuel!"
 			// <divider>
-			// "Games won:"
-			// "Houston Outlaws: 3		Dallas Fuel: 1"
-			var blocks: [MessageBlock] = []
-			blocks.append(.textSection("*\(outcome.winner.team.name)* have won the match against *\(outcome.loser.team.name)*!"))
-			blocks.append(.divider)
-			let fields = [
-				"\(outcome.winner.team.name): *\(outcome.winner.score)*",
-				"\(outcome.loser.team.name): *\(outcome.loser.score)*"
-			]
-			let info = SectionInfo(text: "Games won:", fields: fields)
-			blocks.append(.section(info))
-
-			blocks.append(MatchEvent.context)
-      return blocks
-    case .gameEnded(let outcome, let gameIndex):
-			// Example:
-			// "Houston Outlaws have won game 3 against Dallas Fuel!"
-			// <divider>
-			// "Games won:"
+			// "Maps won:"
 			// "Houston Outlaws: 2		Dallas Fuel: 1"
-      return blocksForGameEnded(outcome, gameIndex: gameIndex)
+      return blocksForMapEnded(outcome, mapIndex: mapIndex)
 		case .pointsUpdated(let teams):
 			// Example:
-			// "The score has been updated for game 3 of Houston Outlaws vs Dallas Fuel"
+			// "The score has been updated for map 3 of Houston Outlaws vs Dallas Fuel"
 			// "Score:"
 			// "Houston Outlaws: 3		Dallas Fuel: 2"
 			return [.text("points updated")]
@@ -80,11 +64,11 @@ extension MatchEvent {
 
 	// MARK: - Private
 
-	private func blocksForGameEnded(_ outcome: Outcome, gameIndex: Int) -> [MessageBlock] {
+	private func blocksForMapEnded(_ outcome: MapOutcome, mapIndex: Int) -> [MessageBlock] {
 		var blocks: [MessageBlock] = []
 		switch outcome {
-		case .win(let outcome):
-			blocks.append(.textSection("*\(outcome.winner.team.name)* have won the game against *\(outcome.loser.team.name)*!"))
+		case .win(let map, let outcome):
+			blocks.append(.textSection("*\(outcome.winner.team.name)* have won the map against *\(outcome.loser.team.name)*!"))
 			blocks.append(.divider)
 			let fields = [
 				"\(outcome.winner.team.name): *\(outcome.winner.score)*",
@@ -92,8 +76,8 @@ extension MatchEvent {
 			]
 			let info = SectionInfo(text: "Score:", fields: fields)
 			blocks.append(.section(info))
-		case .draw(let teams, let score):
-			blocks.append(.textSection("It's a draw! Game \(gameIndex + 1) between *\(teams.team1.name)* and *\(teams.team2.name)* has ended with a score of \(score)-\(score)"))
+    case .draw(let map, let teams, let score):
+			blocks.append(.textSection("It's a draw! Map \(mapIndex + 1) between *\(teams.team1.name)* and *\(teams.team2.name)* has ended with a score of \(score)-\(score)"))
 		}
 		blocks.append(MatchEvent.context)
 		return blocks

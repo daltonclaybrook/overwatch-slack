@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct MatchTeams {
+struct Teams {
   let team1: OWLResponseCompetitor
   let team2: OWLResponseCompetitor
 }
 
 struct RoundStartedInfo {
-  let teams: MatchTeams
+  let teams: Teams
   // may not be one offensive team, such as on control maps
   let offense: OWLResponseCompetitor?
   let isNewGame: Bool
@@ -30,23 +30,73 @@ struct WinningOutcome {
 	let loser: TeamScore
 }
 
-enum Outcome {
-  case win(WinningOutcome)
-	case draw(MatchTeams, score: Int)
+enum MapOutcome {
+  case win(OWLMap, WinningOutcome)
+	case draw(OWLMap, Teams, score: Int)
+}
+
+struct MatchOutcome {
+  let match: WinningOutcome
+  let maps: [MapOutcome]
 }
 
 enum MatchEvent {
   // ten minutes
-  case matchStartingSoon(MatchTeams)
+  case matchStartingSoon(Teams)
   // only one of these events will fire at a time,
   // whichever is most significant
-  case matchStarted(MatchTeams)
-  case gameStarted(MatchTeams, gameIndex: Int, OWLMap?)
+  case matchStarted(Teams)
+  case mapStarted(Teams, mapIndex: Int, OWLMap)
 
   // only one of these events will fire at a time,
   // whichever is most significant
-	case matchEnded(WinningOutcome)
-	case gameEnded(Outcome, gameIndex: Int)
+	case matchEnded(MatchOutcome)
+	case mapEnded(MapOutcome, mapIndex: Int)
 
-	case pointsUpdated(MatchTeams)
+	case pointsUpdated(Teams)
+}
+
+extension MapOutcome {
+  var map: OWLMap {
+    switch self {
+    case .win(let map, _):
+      return map
+    case .draw(let map, _, _):
+      return map
+    }
+  }
+
+  /// e.g. "3-2"
+  var scoreString: String {
+    switch self {
+    case .win(_, let outcome):
+      return outcome.scoreString
+    case .draw(_, _, let score):
+      return "\(score)-\(score)"
+    }
+  }
+
+  var winnerNameOrDraw: String {
+    switch self {
+    case .win(_, let outcome):
+      return "\(outcome.winnerName)"
+    case .draw:
+      return "Draw"
+    }
+  }
+}
+
+extension WinningOutcome {
+  var winnerName: String {
+    return winner.team.name
+  }
+
+  var loserName: String {
+    return loser.team.name
+  }
+
+  /// e.g. "3-2"
+  var scoreString: String {
+    return "\(winner.score)-\(loser.score)"
+  }
 }

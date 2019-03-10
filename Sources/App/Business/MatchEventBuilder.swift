@@ -23,9 +23,9 @@ struct MatchEventBuilder {
       return event
     } else if let event = gameStarted(current: current, previous: previous, teams: teams, maps: maps) {
       return event
-    } else if let event = matchEnded(current: current, previous: previous, teams: teams) {
+    } else if let event = matchEnded(current: current, previous: previous, teams: teams, maps: maps) {
       return event
-    } else if let event = gameEnded(current: current, previous: previous, teams: teams) {
+    } else if let event = gameEnded(current: current, previous: previous, teams: teams, maps: maps) {
       return event
     } else {
       return nil
@@ -34,7 +34,7 @@ struct MatchEventBuilder {
 
   // MARK: - Individual Events
 
-  private static func matchStartingOrStarted(current: OWLResponseMatch, previous: OWLResponseMatch, previousDate: Date, teams: MatchTeams) -> MatchEvent? {
+  private static func matchStartingOrStarted(current: OWLResponseMatch, previous: OWLResponseMatch, previousDate: Date, teams: Teams) -> MatchEvent? {
     let previousTimeToStart = current.startDate.timeIntervalSince(previousDate)
     let timeToStart = current.startDate.timeIntervalSinceNow
 
@@ -47,43 +47,48 @@ struct MatchEventBuilder {
     }
   }
 
-  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams, maps: [OWLMap]) -> MatchEvent? {
+  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     guard let inProgressIndex = current.games.firstIndex(where: { $0.status == .inProgress }) else {
       return nil
     }
 
     let game = current.games[inProgressIndex]
-    let map = mapForGame(game, in: maps)
+    guard let map = mapForGame(game, in: maps) else { return nil }
+
     guard previous.games.count > inProgressIndex else {
       // this game didn't exist previously
-      return .gameStarted(teams, gameIndex: inProgressIndex, map)
+      return .mapStarted(teams, mapIndex: inProgressIndex, map)
     }
 
     let previousGame = previous.games[inProgressIndex]
     if previousGame.status == .pending {
-      return .gameStarted(teams, gameIndex: inProgressIndex, map)
+      return .mapStarted(teams, mapIndex: inProgressIndex, map)
     } else {
       return nil
     }
   }
 
-  private static func matchEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+  private static func matchEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     if current.status == .concluded &&
 			previous.status == .inProgress &&
 			current.scores.count == 2 &&
 			current.scores[0] != current.scores[1] {
 
-			let team1Score = TeamScore(team: teams.team1, score: current.scores[0].value)
-			let team2Score = TeamScore(team: teams.team2, score: current.scores[1].value)
+			let team1 = TeamScore(team: teams.team1, score: current.scores[0].value)
+			let team2 = TeamScore(team: teams.team2, score: current.scores[1].value)
 
-			let outcome = makeWinningOutcome(team1: team1Score, team2: team2Score)
-			return .matchEnded(outcome)
+      let winner = team1.score > team2.score ? team1 : team2
+      let loser = team1.score > team2.score ? team2 : team1
+      let winningOutcome = WinningOutcome(winner: winner, loser: loser)
+      let mapOutcomes = makeAllMapOutcomes(for: current, teams: teams, maps: maps)
+
+      return .matchEnded(MatchOutcome(match: winningOutcome, maps: mapOutcomes))
     } else {
       return nil
     }
   }
 
-  private static func gameEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: MatchTeams) -> MatchEvent? {
+  private static func gameEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     guard let previousInProgressIndex = previous.games.firstIndex(where: { $0.status == .inProgress }),
       current.games.count > previousInProgressIndex else {
       return nil
@@ -91,12 +96,8 @@ struct MatchEventBuilder {
 
     let game = current.games[previousInProgressIndex]
     if game.status == .concluded,
-			let points = game.points,
-			points.count == 2 {
-			let team1Score = TeamScore(team: teams.team1, score: points[0])
-			let team2Score = TeamScore(team: teams.team2, score: points[1])
-			let outcome = makeOutcome(team1: team1Score, team2: team2Score)
-      return .gameEnded(outcome, gameIndex: previousInProgressIndex)
+      let outcome = makeMapOutcome(for: game, teams: teams, maps: maps) {
+      return .mapEnded(outcome, mapIndex: previousInProgressIndex)
     } else {
       return nil
     }
@@ -104,31 +105,40 @@ struct MatchEventBuilder {
 
   // MARK: - Helpers
 
-  private static func makeTeams(with match: OWLResponseMatch) -> MatchTeams? {
+  private static func makeTeams(with match: OWLResponseMatch) -> Teams? {
     guard match.competitors.count >= 2 else { return nil }
-    return MatchTeams(
+    return Teams(
       team1: match.competitors[0],
       team2: match.competitors[1]
     )
+  }
+
+  private static func makeAllMapOutcomes(for match: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> [MapOutcome] {
+    return match.games.compactMap {
+      makeMapOutcome(for: $0, teams: teams, maps: maps)
+    }
   }
 
   private static func mapForGame(_ game: OWLResponseGame, in maps: [OWLMap]) -> OWLMap? {
     return maps.first { $0.guid == game.attributes.mapGuid }
   }
 
-	private static func makeOutcome(team1: TeamScore, team2: TeamScore) -> Outcome {
-		if team1.score == team2.score {
-			return .draw(MatchTeams(team1: team1.team, team2: team2.team), score: team1.score)
-		} else {
-			return .win(makeWinningOutcome(team1: team1, team2: team2))
-		}
-	}
+  private static func makeMapOutcome(for game: OWLResponseGame, teams: Teams, maps: [OWLMap]) -> MapOutcome? {
+    guard
+      let map = mapForGame(game, in: maps),
+      let points = game.points,
+      points.count == 2
+    else { return nil }
 
-	private static func makeWinningOutcome(team1: TeamScore, team2: TeamScore) -> WinningOutcome {
-		if team1.score > team2.score {
-			return WinningOutcome(winner: team1, loser: team2)
-		} else {
-			return WinningOutcome(winner: team2, loser: team1)
-		}
-	}
+    let team1 = TeamScore(team: teams.team1, score: points[0])
+    let team2 = TeamScore(team: teams.team2, score: points[1])
+
+    if team1.score == team2.score {
+      return .draw(map, teams, score: team1.score)
+    } else if team1.score > team2.score {
+      return .win(map, WinningOutcome(winner: team1, loser: team2))
+    } else {
+      return .win(map, WinningOutcome(winner: team2, loser: team1))
+    }
+  }
 }
