@@ -70,6 +70,7 @@ final class MatchFetcher {
     currentFetchFrequency = frequency
     currentTask?.cancel()
 
+    print("switching to fetch frequency: \(frequency), seconds: \(time.seconds)")
     currentTask = eventLoop.scheduleRepeatedTask(initialDelay: time, delay: time) { [weak self] _ in
       try self?.fetchLiveMatch()
       try self?.fetchURL(for: .standingsURL) { (response: OWLStandingsResponse) in
@@ -93,7 +94,7 @@ final class MatchFetcher {
       .flatMap { try $0.content.decode(T.self) }
       .hopTo(eventLoop: eventLoop)
       .catch { error in
-        print("caught error: \(error)")
+        print("error fetching url: \(url), error: \(error)")
       }
       .whenSuccess(onSuccess)
   }
@@ -110,7 +111,7 @@ final class MatchFetcher {
       .decodeLiveMatch()
       .hopTo(eventLoop: eventLoop)
       .catch { error in
-        print("caught error: \(error)")
+        print("error fetching live match: \(error)")
       }
       .whenSuccess { [weak self] response in
         self?.handleLiveMatchResponse(response)
@@ -118,7 +119,6 @@ final class MatchFetcher {
   }
 
   private func handleLiveMatchResponse(_ response: PartialMatchResponseType) {
-    print("did decode type: \(type(of: response))")
     defer {
       previousResponse = response
       previousResponseDate = Date()
@@ -137,7 +137,7 @@ final class MatchFetcher {
         previousResponseDate: previousDate
       ) else { return }
 
-    print(event)
+    print(event.description)
     try? publisher.publish(event: event)
   }
 
@@ -191,5 +191,11 @@ extension Client {
       // this was being set to 0 for some reason
       request.http.headers.remove(name: .contentLength)
     }
+  }
+}
+
+extension TimeAmount {
+  var seconds: Int {
+    return nanoseconds / 1000 / 1000 / 1000
   }
 }
