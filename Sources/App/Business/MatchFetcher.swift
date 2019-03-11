@@ -17,7 +17,7 @@ final class MatchFetcher {
   private let eventLoopGroup: EventLoopGroup
   private let publisher: EventPublisher
 
-  private var previousResponse: OWLResponse?
+  private var previousResponse: OWLLiveMatchResponse?
   private var previousResponseDate: Date?
   private var maps: [OWLMap] = []
   private var standingsTeams: [OWLStandingsTeam] = []
@@ -75,7 +75,7 @@ final class MatchFetcher {
       .whenSuccess(onSuccess)
   }
 
-  private func handleLiveMatchResponse(_ response: OWLResponse) {
+  private func handleLiveMatchResponse(_ response: OWLLiveMatchResponse) {
     defer {
       previousResponse = response
       previousResponseDate = Date()

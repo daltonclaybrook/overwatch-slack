@@ -26,8 +26,8 @@ enum MatchEvent {
 // MARK: - Supporting Models
 
 struct Teams {
-  let team1: OWLResponseCompetitor
-  let team2: OWLResponseCompetitor
+  let team1: OWLCompetitor
+  let team2: OWLCompetitor
 }
 
 struct TeamsStandings {
@@ -44,13 +44,13 @@ struct MatchStartInfo {
 struct RoundStartedInfo {
   let teams: Teams
   // may not be one offensive team, such as on control maps
-  let offense: OWLResponseCompetitor?
+  let offense: OWLCompetitor?
   let isNewGame: Bool
   let isNewMatch: Bool
 }
 
 struct TeamScore {
-	let team: OWLResponseCompetitor
+	let team: OWLCompetitor
 	let score: Int
 }
 

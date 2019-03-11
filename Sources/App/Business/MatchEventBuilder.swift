@@ -13,8 +13,8 @@ struct MatchEventBuilder {
   private init() {}
 
   static func buildMatchEventWith(
-    currentResponse: OWLResponse,
-    previousResponse: OWLResponse,
+    currentResponse: OWLLiveMatchResponse,
+    previousResponse: OWLLiveMatchResponse,
     maps: [OWLMap],
     standingsTeams: [OWLStandingsTeam],
     previousResponseDate: Date
@@ -42,8 +42,8 @@ struct MatchEventBuilder {
   // MARK: - Individual Events
 
   private static func matchStartingOrStarted(
-    current: OWLResponseMatch,
-    previous: OWLResponseMatch,
+    current: OWLLiveMatch,
+    previous: OWLLiveMatch,
     previousDate: Date,
     teams: Teams,
     standings: TeamsStandings
@@ -61,7 +61,7 @@ struct MatchEventBuilder {
     }
   }
 
-  private static func gameStarted(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
+  private static func gameStarted(current: OWLLiveMatch, previous: OWLLiveMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     guard let inProgressIndex = current.games.firstIndex(where: { $0.status == .inProgress }) else {
       return nil
     }
@@ -82,7 +82,7 @@ struct MatchEventBuilder {
     }
   }
 
-  private static func matchEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
+  private static func matchEnded(current: OWLLiveMatch, previous: OWLLiveMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     if current.status == .concluded &&
 			previous.status == .inProgress &&
 			current.scores.count == 2 &&
@@ -102,7 +102,7 @@ struct MatchEventBuilder {
     }
   }
 
-  private static func gameEnded(current: OWLResponseMatch, previous: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
+  private static func gameEnded(current: OWLLiveMatch, previous: OWLLiveMatch, teams: Teams, maps: [OWLMap]) -> MatchEvent? {
     guard let previousInProgressIndex = previous.games.firstIndex(where: { $0.status == .inProgress }),
       current.games.count > previousInProgressIndex else {
       return nil
@@ -119,7 +119,7 @@ struct MatchEventBuilder {
 
   // MARK: - Helpers
 
-  private static func makeTeams(with match: OWLResponseMatch) -> Teams? {
+  private static func makeTeams(with match: OWLLiveMatch) -> Teams? {
     guard match.competitors.count >= 2 else { return nil }
     return Teams(
       team1: match.competitors[0],
@@ -127,13 +127,13 @@ struct MatchEventBuilder {
     )
   }
 
-  private static func makeAllMapOutcomes(for match: OWLResponseMatch, teams: Teams, maps: [OWLMap]) -> [MapOutcome] {
+  private static func makeAllMapOutcomes(for match: OWLLiveMatch, teams: Teams, maps: [OWLMap]) -> [MapOutcome] {
     return match.games.compactMap {
       makeMapOutcome(for: $0, teams: teams, maps: maps)
     }
   }
 
-  private static func mapForGame(_ game: OWLResponseGame, in maps: [OWLMap]) -> OWLMap? {
+  private static func mapForGame(_ game: OWLGame, in maps: [OWLMap]) -> OWLMap? {
     return maps.first { $0.guid == game.attributes.mapGuid }
   }
 
@@ -145,7 +145,7 @@ struct MatchEventBuilder {
     return TeamsStandings(team1: team1, team2: team2)
   }
 
-  private static func makeMapOutcome(for game: OWLResponseGame, teams: Teams, maps: [OWLMap]) -> MapOutcome? {
+  private static func makeMapOutcome(for game: OWLGame, teams: Teams, maps: [OWLMap]) -> MapOutcome? {
     guard
       let map = mapForGame(game, in: maps),
       let points = game.points,

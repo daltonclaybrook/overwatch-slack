@@ -7,19 +7,19 @@
 
 import Foundation
 
-struct OWLResponse: Decodable {
-  let data: OWLResponseData
+struct OWLLiveMatchResponse: Decodable {
+  let data: OWLLiveMatchResponseData
 
-  static func empty() -> OWLResponse {
-    return OWLResponse(data: OWLResponseData(liveMatch: nil))
+  static func empty() -> OWLLiveMatchResponse {
+    return OWLLiveMatchResponse(data: OWLLiveMatchResponseData(liveMatch: nil))
   }
 }
 
-struct OWLResponseData: Decodable {
-  let liveMatch: OWLResponseMatch?
+struct OWLLiveMatchResponseData: Decodable {
+  let liveMatch: OWLLiveMatch?
 }
 
-struct OWLResponseMatch: Decodable {
+struct OWLLiveMatch: Decodable {
   let id: Int
   let conclusionStrategy: String
   let dateCreated: Int // milliseconds
@@ -30,13 +30,13 @@ struct OWLResponseMatch: Decodable {
   let status: OWLGameMatchStatus
   let statusReason: String
   let wins: [Int]
-  let competitors: [OWLResponseCompetitor]
-  let scores: [OWLResponseScore]
-  let games: [OWLResponseGame]
-  let winner: OWLResponseCompetitor?
+  let competitors: [OWLCompetitor]
+  let scores: [OWLScore]
+  let games: [OWLGame]
+  let winner: OWLCompetitor?
 }
 
-extension OWLResponseMatch {
+extension OWLLiveMatch {
   var startDate: Date {
     return Date(timeIntervalSince1970: TimeInterval(startDateTS / 1000))
   }
@@ -46,7 +46,7 @@ extension OWLResponseMatch {
   }
 }
 
-struct OWLResponseCompetitor: Decodable, Equatable {
+struct OWLCompetitor: Decodable, Equatable {
   let id: Int
   let name: String
   let homeLocation: String
@@ -59,11 +59,11 @@ struct OWLResponseCompetitor: Decodable, Equatable {
   let addressCountry: String
 }
 
-struct OWLResponseScore: Decodable, Equatable {
+struct OWLScore: Decodable, Equatable {
   let value: Int
 }
 
-struct OWLResponseGame: Decodable {
+struct OWLGame: Decodable {
   let id: Int
   let number: Int
   let points: [Int]?
