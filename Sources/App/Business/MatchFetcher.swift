@@ -12,6 +12,26 @@ enum FetcherError: Error {
   case badResponseCode
 }
 
+enum FetchFrequency {
+  case short, long
+}
+
+extension FetchFrequency {
+  var envKey: EnvKey {
+    switch self {
+    case .short:
+      return .shortFetchInterval
+    case .long:
+      return .longFetchInterval
+    }
+  }
+
+  func timeAmount() throws -> TimeAmount {
+    let interval = try Environment.timeInterval(for: envKey)
+    return .seconds(TimeAmount.Value(interval))
+  }
+}
+
 final class MatchFetcher {
   private let container: Container
   private let eventLoopGroup: EventLoopGroup
@@ -21,6 +41,9 @@ final class MatchFetcher {
   private var previousResponseDate: Date?
   private var maps: [OWLMap] = []
   private var standingsTeams: [OWLStandingsTeam] = []
+
+  private var currentTask: RepeatedTask?
+  private var currentFetchFrequency = FetchFrequency.short
 
   private var eventLoop: EventLoop {
     return eventLoopGroup.next()
@@ -37,13 +60,17 @@ final class MatchFetcher {
   }
 
   func startFetching() throws {
-    guard let intervalString = Environment.get(.fetchInterval),
-      let interval = TimeAmount.Value(intervalString),
-      interval > 0 else {
-        throw FetcherError.missingEnvVariable(.fetchInterval)
-    }
+    try startFetching(with: currentFetchFrequency)
+  }
 
-    eventLoop.scheduleRepeatedTask(initialDelay: .seconds(0), delay: .seconds(interval)) { [weak self] _ in
+  // MARK: - Helpers
+
+  private func startFetching(with frequency: FetchFrequency) throws {
+    let time = try frequency.timeAmount()
+    currentFetchFrequency = frequency
+    currentTask?.cancel()
+
+    currentTask = eventLoop.scheduleRepeatedTask(initialDelay: time, delay: time) { [weak self] _ in
       try self?.fetchLiveMatch()
       try self?.fetchURL(for: .standingsURL) { (response: OWLStandingsResponse) in
         self?.standingsTeams = response.data
@@ -53,8 +80,6 @@ final class MatchFetcher {
       }
     }
   }
-
-  // MARK: - Helpers
 
   private func fetchURL<T: Decodable>(for key: EnvKey, onSuccess: @escaping (T) -> Void) throws {
     guard let urlString = Environment.get(key),
@@ -99,6 +124,8 @@ final class MatchFetcher {
       previousResponseDate = Date()
     }
 
+    try? toggleFetchFrequenciesIfNecessary(for: response)
+
     guard
       let previous = previousResponse,
       let previousDate = previousResponseDate,
@@ -112,6 +139,19 @@ final class MatchFetcher {
 
     print(event)
     try? publisher.publish(event: event)
+  }
+
+  /// Toggles between fetch frequencies based on the presence of a live match
+  /// in the response. If there is no live match, we shouldn't fetch as
+  /// frequently.
+  ///
+  /// - Parameter response: The latest response from the live match endpoint
+  private func toggleFetchFrequenciesIfNecessary(for response: PartialMatchResponseType) throws {
+    if response.liveMatch == nil && currentFetchFrequency == .short {
+      try startFetching(with: .long)
+    } else if response.liveMatch != nil && currentFetchFrequency == .long {
+      try startFetching(with: .short)
+    }
   }
 }
 
