@@ -40,6 +40,10 @@ extension OWLResponseMatch {
   var startDate: Date {
     return Date(timeIntervalSince1970: TimeInterval(startDateTS / 1000))
   }
+
+  var realStartDate: Date? {
+    return actualStartDate.map { Date(timeIntervalSince1970: TimeInterval($0 / 1000)) }
+  }
 }
 
 struct OWLResponseCompetitor: Decodable, Equatable {

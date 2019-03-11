@@ -51,11 +51,11 @@ struct MatchEventBuilder {
     let previousTimeToStart = current.startDate.timeIntervalSince(previousDate)
     let timeToStart = current.startDate.timeIntervalSinceNow
 
-    if timeToStart <= tenMinutes && previousTimeToStart > tenMinutes {
-      return .matchStartingSoon(teams)
-    } else if timeToStart <= 0 && previousTimeToStart > 0 {
+    if current.status == .inProgress && previous.status == .pending {
       let info = MatchStartInfo(teams: teams, standings: standings, startDate: current.startDate)
       return .matchStarted(info)
+    } else if timeToStart <= tenMinutes && previousTimeToStart > tenMinutes {
+      return .matchStartingSoon(teams)
     } else {
       return nil
     }
