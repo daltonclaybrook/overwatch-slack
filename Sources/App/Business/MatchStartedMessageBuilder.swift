@@ -35,15 +35,12 @@ struct MatchStartedMessageBuilder {
       "DIFF \(team2League.matchGameDifferentialString)"
     ]
 
-    let ctaString = "Watch the action at overwatchleague.com."
-    let button = Button(text: "Watch Live", actionId: "watch_live", urlString: "https://overwatchleague.com")
-
     return [
       .textSection(title),
       .context([.text(dateText)]),
       .divider,
       .section(SectionInfo(fields: fields)),
-      .section(SectionInfo(text: ctaString, accessory: button))
+      .watchLiveSection
     ]
   }
 }

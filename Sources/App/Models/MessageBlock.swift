@@ -42,9 +42,3 @@ enum MessageBlock {
   case image(ImageInfo)
 	case context([MessageBlock])
 }
-
-extension MessageBlock {
-	static func textSection(_ text: String) -> MessageBlock {
-		return .section(SectionInfo(text: text))
-	}
-}
