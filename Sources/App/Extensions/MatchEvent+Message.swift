@@ -8,7 +8,7 @@
 import Foundation
 
 extension MatchEvent {
-  var messageBlocks: [MessageBlock] {
+  var message: Message {
     switch self {
     case .matchStartingSoon(let teams):
 			return MatchStartingSoonMessageBuilder.buildMessage(with: teams)
@@ -21,8 +21,8 @@ extension MatchEvent {
     case .mapEnded(let outcome, let mapIndex):
 			return MapEndedMessageBuilder.buildMessage(with: outcome, mapIndex: mapIndex)
 		case .pointsUpdated(let teams):
-      // fixme
-			return [.text("points updated")]
+      // todo
+      return Message(text: "points updated", blocks: [.text("points updated")])
     }
   }
 }

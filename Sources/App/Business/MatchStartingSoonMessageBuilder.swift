@@ -10,12 +10,15 @@ import Foundation
 struct MatchStartingSoonMessageBuilder {
   private init() {}
 
-  static func buildMessage(with teams: Teams) -> [MessageBlock] {
+  static func buildMessage(with teams: Teams) -> Message {
     let title = "*\(teams.team1.name)* will face off against *\(teams.team2.name)* in _10 minutes_."
 
-    return [
-      .textSection(title),
-      .watchLiveSection
-    ]
+    return Message(
+      text: title,
+      blocks: [
+        .textSection(title),
+        .watchLiveSection
+      ]
+    )
   }
 }

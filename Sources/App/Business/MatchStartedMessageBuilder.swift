@@ -17,7 +17,7 @@ struct MatchStartedMessageBuilder {
 
   private init() {}
 
-  static func buildMessage(with info: MatchStartInfo) -> [MessageBlock] {
+  static func buildMessage(with info: MatchStartInfo) -> Message {
     let title = "*\(info.teams.team1.name)* vs *\(info.teams.team2.name)* has started."
 
     let fallbackDateString = formatter.string(from: info.startDate)
@@ -35,12 +35,13 @@ struct MatchStartedMessageBuilder {
       "DIFF \(team2League.matchGameDifferentialString)"
     ]
 
-    return [
+    let blocks: [MessageBlock] = [
       .textSection(title),
       .context([.text(dateText)]),
       .divider,
       .section(SectionInfo(fields: fields)),
       .watchLiveSection
     ]
+    return Message(text: title, blocks: blocks)
   }
 }

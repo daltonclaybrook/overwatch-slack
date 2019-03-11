@@ -10,7 +10,7 @@ import Foundation
 struct MatchEndedMessageBuilder {
   private init() {}
 
-  static func buildMessage(with outcome: MatchOutcome) -> [MessageBlock] {
+  static func buildMessage(with outcome: MatchOutcome) -> Message {
     let title = "*\(outcome.match.winnerName)* has defeated *\(outcome.match.loserName)* \(outcome.match.winner.score)-\(outcome.match.loser.score)"
     var fields = outcome.maps
       .flatMap { outcome -> [String] in
@@ -21,10 +21,13 @@ struct MatchEndedMessageBuilder {
     }
     fields.insert(contentsOf: ["*Map*", "*Score*"], at: 0)
 
-    return [
-      MessageBlock.textSection(title),
-      .divider,
-      .section(SectionInfo(fields: fields))
-    ]
+    return Message(
+      text: title,
+      blocks: [
+        MessageBlock.textSection(title),
+        .divider,
+        .section(SectionInfo(fields: fields))
+      ]
+    )
   }
 }

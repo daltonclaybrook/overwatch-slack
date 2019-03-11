@@ -25,7 +25,7 @@ final class EventPublisher {
     }
 
     let client = try container.client()
-    let body = try event.messageBlocks.messagePayloadData()
+    let body = try event.message.payloadData()
     let httpRequest = HTTPRequest(
       method: .POST,
       url: slackURL,

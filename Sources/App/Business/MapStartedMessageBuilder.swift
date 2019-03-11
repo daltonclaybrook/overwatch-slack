@@ -10,7 +10,7 @@ import Foundation
 struct MapStartedMessageBuilder {
   private init() {}
 
-  static func buildMessage(with teams: Teams, mapIndex: Int, map: OWLMap) -> [MessageBlock] {
+  static func buildMessage(with teams: Teams, mapIndex: Int, map: OWLMap) -> Message {
     let title = "Map \(mapIndex + 1) of *\(teams.team1.name)* vs *\(teams.team2.name)* is starting."
     var blocks: [MessageBlock] = [.textSection(title)]
 
@@ -27,6 +27,6 @@ struct MapStartedMessageBuilder {
     }
 
     blocks.append(.watchLiveSection)
-    return blocks
+    return Message(text: title, blocks: blocks)
   }
 }

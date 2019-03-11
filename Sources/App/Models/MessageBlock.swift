@@ -42,3 +42,8 @@ enum MessageBlock {
   case image(ImageInfo)
 	case context([MessageBlock])
 }
+
+struct Message {
+  let text: String
+  let blocks: [MessageBlock]
+}

@@ -91,12 +91,15 @@ extension Button {
   }
 }
 
-extension Sequence where Element == MessageBlock {
-  func messagePayloadData() throws -> Data {
-    let payloads = map { $0.payload }
-    let data = try JSONSerialization.data(withJSONObject: payloads, options: [])
-    let dataString = String(data: data, encoding: .utf8) ?? ""
-    let blockPayload = [ "blocks": dataString ]
+extension Message {
+  func payloadData() throws -> Data {
+    let blockPayloads = blocks.map { $0.payload }
+    let data = try JSONSerialization.data(withJSONObject: blockPayloads, options: [])
+    let blockDataString = String(data: data, encoding: .utf8) ?? ""
+    let blockPayload = [
+      "text": text,
+      "blocks": blockDataString
+    ]
     return try JSONSerialization.data(withJSONObject: blockPayload, options: [])
   }
 }
