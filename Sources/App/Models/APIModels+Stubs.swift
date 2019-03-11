@@ -7,13 +7,55 @@
 
 import Foundation
 
-struct OWLStubResponse: Decodable {
-  let data: OWLStubResponseData
+protocol PartialMatchResponseType {
+  var liveMatch: OWLLiveMatch? { get }
+  var nextMatch: OWLLiveMatch? { get }
 }
 
-struct OWLStubResponseData: Decodable {
-  let liveMatch: OWLStubResponseMatch
+struct OWLHalfStubResponse: Decodable {
+  let data: OWLHalfStubData
+}
+
+struct OWLFullStubResponse: Decodable {
+  let data: OWLFullStubData
+}
+
+struct OWLHalfStubData: Decodable {
+  let liveMatch: OWLLiveMatch
+  let nextMatch: OWLStubMatch
+}
+
+struct OWLFullStubData: Decodable {
+  let liveMatch: OWLStubMatch
+  let nextMatch: OWLStubMatch
 }
 
 // empty
-struct OWLStubResponseMatch: Decodable {}
+struct OWLStubMatch: Decodable {}
+
+extension OWLLiveMatchResponse: PartialMatchResponseType {
+  var liveMatch: OWLLiveMatch? {
+    return data.liveMatch
+  }
+  var nextMatch: OWLLiveMatch? {
+    return data.nextMatch
+  }
+}
+
+extension OWLHalfStubResponse: PartialMatchResponseType {
+  var liveMatch: OWLLiveMatch? {
+    return data.liveMatch
+  }
+  var nextMatch: OWLLiveMatch? {
+    return nil
+  }
+}
+
+extension OWLFullStubResponse: PartialMatchResponseType {
+  var liveMatch: OWLLiveMatch? {
+    return nil
+  }
+  var nextMatch: OWLLiveMatch? {
+    return nil
+  }
+}

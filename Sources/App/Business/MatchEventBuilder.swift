@@ -13,14 +13,14 @@ struct MatchEventBuilder {
   private init() {}
 
   static func buildMatchEventWith(
-    currentResponse: OWLLiveMatchResponse,
-    previousResponse: OWLLiveMatchResponse,
+    currentResponse: PartialMatchResponseType,
+    previousResponse: PartialMatchResponseType,
     maps: [OWLMap],
     standingsTeams: [OWLStandingsTeam],
     previousResponseDate: Date
   ) -> MatchEvent? {
-    guard let current = currentResponse.data.liveMatch,
-      let previous = previousResponse.data.liveMatch,
+    guard let current = currentResponse.liveMatch,
+      let previous = previousResponse.liveMatch,
       let teams = makeTeams(with: current),
       let standings = teamsStandings(for: teams, standings: standingsTeams) else {
       return nil

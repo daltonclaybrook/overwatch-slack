@@ -17,7 +17,7 @@ final class MatchFetcher {
   private let eventLoopGroup: EventLoopGroup
   private let publisher: EventPublisher
 
-  private var previousResponse: OWLLiveMatchResponse?
+  private var previousResponse: PartialMatchResponseType?
   private var previousResponseDate: Date?
   private var maps: [OWLMap] = []
   private var standingsTeams: [OWLStandingsTeam] = []
@@ -44,9 +44,7 @@ final class MatchFetcher {
     }
 
     eventLoop.scheduleRepeatedTask(initialDelay: .seconds(0), delay: .seconds(interval)) { [weak self] _ in
-      try self?.fetchURL(for: .liveMatchURL) { response in
-        self?.handleLiveMatchResponse(response)
-      }
+      try self?.fetchLiveMatch()
       try self?.fetchURL(for: .standingsURL) { (response: OWLStandingsResponse) in
         self?.standingsTeams = response.data
       }
@@ -75,7 +73,27 @@ final class MatchFetcher {
       .whenSuccess(onSuccess)
   }
 
-  private func handleLiveMatchResponse(_ response: OWLLiveMatchResponse) {
+  private func fetchLiveMatch() throws {
+    guard let urlString = Environment.get(.liveMatchURL),
+      let url = URL(string: urlString) else {
+        throw FetcherError.missingEnvVariable(.liveMatchURL)
+    }
+
+    let client = try container.client()
+    client.getJSON(url)
+      .mapSuccessfulResponseCode()
+      .decodeLiveMatch()
+      .hopTo(eventLoop: eventLoop)
+      .catch { error in
+        print("caught error: \(error)")
+      }
+      .whenSuccess { [weak self] response in
+        self?.handleLiveMatchResponse(response)
+      }
+  }
+
+  private func handleLiveMatchResponse(_ response: PartialMatchResponseType) {
+    print("did decode type: \(type(of: response))")
     defer {
       previousResponse = response
       previousResponseDate = Date()
@@ -105,6 +123,24 @@ extension Future where T == Response {
       } else {
         throw FetcherError.badResponseCode
       }
+    }
+  }
+
+  func decodeLiveMatch() -> Future<PartialMatchResponseType> {
+    return flatMap { response in
+      return try response.content
+        .decode(OWLLiveMatchResponse.self)
+        .map { $0 as PartialMatchResponseType }
+        .catchFlatMap { _ in
+          try response.content
+            .decode(OWLHalfStubResponse.self)
+            .map { $0 as PartialMatchResponseType }
+        }
+        .catchFlatMap { _ in
+          try response.content
+            .decode(OWLFullStubResponse.self)
+            .map { $0 as PartialMatchResponseType }
+        }
     }
   }
 }

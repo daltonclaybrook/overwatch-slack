@@ -9,14 +9,11 @@ import Foundation
 
 struct OWLLiveMatchResponse: Decodable {
   let data: OWLLiveMatchResponseData
-
-  static func empty() -> OWLLiveMatchResponse {
-    return OWLLiveMatchResponse(data: OWLLiveMatchResponseData(liveMatch: nil))
-  }
 }
 
 struct OWLLiveMatchResponseData: Decodable {
-  let liveMatch: OWLLiveMatch?
+  let liveMatch: OWLLiveMatch
+  let nextMatch: OWLLiveMatch
 }
 
 struct OWLLiveMatch: Decodable {
