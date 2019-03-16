@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  linux:
+  test:
     docker:
       - image: swift:4.1
     steps:
@@ -13,31 +13,37 @@ jobs:
           name: Run unit tests
           command: swift test
 
-  linux-release:
+  deploy:
     docker:
-      - image: swift:4.1
+      - image: docker:stable-git
     steps:
+      - setup_remote_docker
       - checkout
-      - run: 
-          name: Compile code with optimizations
-          command: swift build -c release
+      
+      - run:
+        name: ECR Login
+        command: $(aws ecr get-login --no-include-email --region us-east-1)
+      - run:
+        name: Build overwatch docker image
+        command: docker build --build-arg env=docker -t overwatch .
+      - run:
+        name: Tag image
+        command: docker tag overwatch:latest 073174792857.dkr.ecr.us-east-1.amazonaws.com/overwatch:latest
+      - run:
+        name: Deploy image to ECR
+        command: docker push 073174792857.dkr.ecr.us-east-1.amazonaws.com/overwatch:latest
+      - run:
+        name: Update overwatch service on ECS
+        command: aws ecs update-service --cluster overwatch2 --service overwatch2-service --task-definition overwatch --force-new-deployment
 
 workflows:
   version: 2
-  tests:
+  test-deploy:
     jobs:
-      - linux
-      - linux-release
-
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - linux
-      - linux-release
-      
+      - test
+      - deploy:
+        requires:
+          - test
+        filters:
+          branches:
+            only: master
