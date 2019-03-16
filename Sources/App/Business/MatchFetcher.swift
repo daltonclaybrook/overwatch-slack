@@ -111,7 +111,7 @@ final class MatchFetcher {
       .decodeLiveMatch()
       .hopTo(eventLoop: eventLoop)
       .catch { error in
-        print("error fetching live match: \(error)")
+        print("error fetching live-match: \(error)")
       }
       .whenSuccess { [weak self] response in
         self?.handleLiveMatchResponse(response)
