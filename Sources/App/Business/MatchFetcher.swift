@@ -129,13 +129,15 @@ final class MatchFetcher {
     guard
       let previous = previousResponse,
       let previousDate = previousResponseDate,
-      let event = MatchEventBuilder.buildMatchEventWith(
+      let eventBuilder = MatchEventBuilder(
         currentResponse: response,
         previousResponse: previous,
         maps: maps,
         standingsTeams: standingsTeams,
         previousResponseDate: previousDate
-      ) else { return }
+      ),
+      let event = eventBuilder.buildMatchEvent()
+    else { return }
 
     print(event.description)
     try? publisher.publish(event: event)
