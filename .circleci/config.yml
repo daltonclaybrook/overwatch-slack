@@ -14,11 +14,14 @@ jobs:
 
   deploy:
     docker:
-      - image: docker:stable-git
+      - image: circleci/python:3.6-jessie
     steps:
       - setup_remote_docker
       - checkout
       
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
       - run:
           name: ECR Login
           command: $(aws ecr get-login --no-include-email --region us-east-1)
