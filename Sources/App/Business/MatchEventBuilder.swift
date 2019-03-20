@@ -69,15 +69,12 @@ struct MatchEventBuilder {
 
   private func matchStartingOrStarted() -> MatchEvent? {
     let liveMatchStartsSoon = matchStartsSoon(liveChanges.current, previousDate: previousResponseDate)
-    let nextMatchStartsSoon = nextChanges.map {
-      matchStartsSoon($0.current, previousDate: previousResponseDate)
-    } ?? false
 
     if liveChanges.current.status == .inProgress &&
       liveChanges.previous.status == .pending {
       let info = MatchStartInfo(teams: teams, standings: standings, startDate: liveChanges.current.startDate)
       return .matchStarted(info)
-    } else if liveMatchStartsSoon || nextMatchStartsSoon {
+    } else if liveMatchStartsSoon {
       return .matchStartingSoon(teams)
     } else {
       return nil
